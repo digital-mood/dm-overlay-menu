@@ -1,0 +1,77 @@
+/* DM Overlay Menu - base styles */
+/* All comments are in English intentionally. */
+
+:root{
+  --dm-blue: #20A0FF;
+  --dm-dark: #0f2733;
+  --dm-orange: #ff6a3d;
+  --gap: 24px;
+  --header-h: 64px;
+  --font: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* Header */
+.dm-header{
+  position: fixed; inset: 0 0 auto 0;
+  height: var(--header-h);
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 24px;
+  background: var(--dm-blue);
+  z-index: 1000;
+}
+.dm-brand img{ height:36px; display:block; }
+.dm-brand__text{ font-weight:700; color:#000; text-transform:uppercase; }
+
+/* Burger */
+.dm-burger{
+  border:0; background:transparent; cursor:pointer; padding:8px;
+  display:flex; flex-direction:column; gap:5px;
+}
+.dm-burger span{ width:26px; height:2px; background:#000; display:block; }
+
+/* Overlay container */
+.dm-overlay{
+  position: fixed; inset: 0;
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 420px);
+  transform: translateX(100%);
+  transition: transform .38s cubic-bezier(.22,.61,.36,1);
+  z-index: 1500;
+}
+.dm-overlay.is-open{ transform: translateX(0%); }
+.html--lock, .body--lock{ overflow: hidden; }
+
+/* Panels */
+.dm-panel{ height:100vh; padding-top: var(--header-h); display:flex; align-items:center; justify-content:center; }
+.dm-panel--dark{ background: var(--dm-dark); color: #fff; }
+.dm-panel--orange{ background: var(--dm-orange); color: #fff; position:relative; }
+
+.dm-panel-inner{ text-align:center; max-width: 520px; padding: 0 24px; }
+.dm-mark{ width: 180px; height: auto; margin: 0 auto 16px; opacity:.95; }
+.dm-tagline{ font: 500 14px/1.4 var(--font); opacity:.85; }
+
+/* Close control */
+.dm-close{
+  position:absolute; top:18px; right:18px;
+  font-size:28px; line-height:1; color:#fff;
+  border:0; background:transparent; cursor:pointer;
+}
+
+/* Menu list */
+.dm-menu{ list-style:none; margin:0; padding: 0 32px;
+  display:flex; flex-direction:column; gap:10px;
+  align-items:flex-start; justify-content:center; height:100%;
+  font-family: var(--font); text-transform: uppercase;
+}
+.dm-menu a{ color:#fff; text-decoration:none; font-weight:700; letter-spacing:.02em; font-size:22px; }
+.dm-menu .is-section{ color:#fff; opacity:.95; font-weight:800; font-size:24px; margin-top:14px; }
+.dm-menu li:not(.is-section) a{ font-weight:600; font-size:16px; opacity:.95; }
+
+@media (min-width: 1024px){
+  .dm-overlay{ grid-template-columns: minmax(640px,1fr) 420px; }
+}
+
+/* Focus rings */
+.dm-burger:focus-visible, .dm-close:focus-visible, .dm-menu a:focus-visible{
+  outline: 2px solid #fff; outline-offset: 2px;
+}
