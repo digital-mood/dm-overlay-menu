@@ -1,77 +1,189 @@
-/* DM Overlay Menu - base styles */
-/* All comments are in English intentionally. */
-
-:root{
-  --dm-blue: #20A0FF;
+/* DM Overlay Menu - styles (v1.1.0) */
+:root {
+  --dm-blue: #20a0ff;
   --dm-dark: #0f2733;
   --dm-orange: #ff6a3d;
+  --dm-transparent: transparent;
   --gap: 24px;
   --header-h: 64px;
   --font: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
-/* Header */
-.dm-header{
-  position: fixed; inset: 0 0 auto 0;
+.dm-header {
+  position: fixed;
+  inset: 0 0 auto 0;
   height: var(--header-h);
-  display:flex; align-items:center; justify-content:space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 0 24px;
-  background: var(--dm-blue);
+  background: var(--dm-transparent, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   z-index: 1000;
 }
-.dm-brand img{ height:36px; display:block; }
-.dm-brand__text{ font-weight:700; color:#000; text-transform:uppercase; }
-
-/* Burger */
-.dm-burger{
-  border:0; background:transparent; cursor:pointer; padding:8px;
-  display:flex; flex-direction:column; gap:5px;
+.dm-header.is-scrolled {
+  background: rgba(32, 160, 255, 0.55);
 }
-.dm-burger span{ width:26px; height:2px; background:#000; display:block; }
 
-/* Overlay container */
-.dm-overlay{
-  position: fixed; inset: 0;
+.dm-brand img {
+  height: 36px;
+  display: block;
+}
+.dm-brand__text {
+  font-weight: 700;
+  color: #000;
+  text-transform: uppercase;
+}
+
+.dm-burger {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.dm-burger span {
+  width: 26px;
+  height: 2px;
+  background: #000;
+  display: block;
+}
+
+.dm-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: min(980px, 64vw);
   display: grid;
-  grid-template-columns: 1fr minmax(280px, 420px);
+  grid-template-columns: 1fr 420px;
   transform: translateX(100%);
-  transition: transform .38s cubic-bezier(.22,.61,.36,1);
+  transition: transform 0.38s cubic-bezier(0.22, 0.61, 0.36, 1);
   z-index: 1500;
+  box-shadow: -28px 0 40px rgba(0, 0, 0, 0.28);
 }
-.dm-overlay.is-open{ transform: translateX(0%); }
-.html--lock, .body--lock{ overflow: hidden; }
-
-/* Panels */
-.dm-panel{ height:100vh; padding-top: var(--header-h); display:flex; align-items:center; justify-content:center; }
-.dm-panel--dark{ background: var(--dm-dark); color: #fff; }
-.dm-panel--orange{ background: var(--dm-orange); color: #fff; position:relative; }
-
-.dm-panel-inner{ text-align:center; max-width: 520px; padding: 0 24px; }
-.dm-mark{ width: 180px; height: auto; margin: 0 auto 16px; opacity:.95; }
-.dm-tagline{ font: 500 14px/1.4 var(--font); opacity:.85; }
-
-/* Close control */
-.dm-close{
-  position:absolute; top:18px; right:18px;
-  font-size:28px; line-height:1; color:#fff;
-  border:0; background:transparent; cursor:pointer;
+.dm-overlay.is-open {
+  transform: translateX(0%);
+}
+.html--lock,
+.body--lock {
+  overflow: hidden;
 }
 
-/* Menu list */
-.dm-menu{ list-style:none; margin:0; padding: 0 32px;
-  display:flex; flex-direction:column; gap:10px;
-  align-items:flex-start; justify-content:center; height:100%;
-  font-family: var(--font); text-transform: uppercase;
+.dm-panel {
+  height: 100vh;
+  padding-top: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: start;
 }
-.dm-menu a{ color:#fff; text-decoration:none; font-weight:700; letter-spacing:.02em; font-size:22px; }
-.dm-menu .is-section{ color:#fff; opacity:.95; font-weight:800; font-size:24px; margin-top:14px; }
-.dm-menu li:not(.is-section) a{ font-weight:600; font-size:16px; opacity:.95; }
-
-@media (min-width: 1024px){
-  .dm-overlay{ grid-template-columns: minmax(640px,1fr) 420px; }
+.dm-panel--dark {
+  background: var(--dm-dark, #0f2733);
+  color: #fff;
+}
+.dm-panel--orange {
+  background: var(--dm-orange, #ff6a3d);
+  color: #fff;
+  position: relative;
 }
 
-/* Focus rings */
-.dm-burger:focus-visible, .dm-close:focus-visible, .dm-menu a:focus-visible{
-  outline: 2px solid #fff; outline-offset: 2px;
+.dm-panel-inner {
+  text-align: center;
+  max-width: 520px;
+  padding: 0 24px;
+  transform: translateY(-6%);
+}
+.dm-mark {
+  width: 180px;
+  height: auto;
+  margin: 0 auto 12px;
+  opacity: 0.95;
+}
+.dm-tagline {
+  font: 500 13px/1.4 var(--font);
+  opacity: 0.85;
+}
+
+.dm-close {
+  position: absolute;
+  top: 42px;
+  right: 22px;
+  font-size: 32px;
+  line-height: 1;
+  color: #fff;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.dm-menu {
+  list-style: none;
+  margin: 0;
+  padding: 64px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  height: 100%;
+  font-family: var(--font);
+  text-transform: uppercase;
+}
+.dm-menu .is-section {
+  color: #fff;
+  opacity: 0.98;
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  margin-top: 18px;
+}
+.dm-menu li:not(.is-section) a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  opacity: 0.92;
+}
+.dm-menu li {
+  margin: 2px 0;
+}
+
+@media (min-width: 1024px) {
+  .dm-overlay {
+    width: min(1040px, 64vw);
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.dm-burger:focus-visible,
+.dm-close:focus-visible,
+.dm-menu a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Divi overrides (baked-in) */
+#main-header,
+#top-header,
+.et_search_outer,
+.et_search_form_container {
+  display: none !important;
+}
+#page-container {
+  padding-top: 0 !important;
+}
+
+.admin-bar .dm-header {
+  top: 32px;
+}
+@media (max-width: 782px) {
+  .admin-bar .dm-header {
+    top: 46px;
+  }
 }

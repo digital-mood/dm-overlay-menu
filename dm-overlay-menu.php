@@ -1,45 +1,37 @@
 <?php
 /**
  * Plugin Name: DM Overlay Menu
- * Description: Menú overlay tipo panel doble (oscuro + naranja) para digitalMood, sin dependencias de Divi. Usa un location de menú y opciones simples para logo, marca y tagline.
- * Version: 1.0.0
+ * Description: Menú overlay tipo panel doble (oscuro + naranja) para digitalMood. Sin dependencias de Divi. Incluye overrides CSS para ocultar el header nativo de Divi y estilos fieles al diseño original.
+ * Version: 1.1.0
  * Author: digitalMood
  * Text Domain: dm-overlay-menu
  */
-
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 class DM_Overlay_Menu {
-    const OPTION_KEY = 'dmom_options';
+    const OPTION_KEY   = 'dmom_options';
     const MENU_LOCATION = 'dmom_primary';
 
     public function __construct() {
         add_action('after_setup_theme', [$this, 'register_menu_location']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
-        add_action('wp_body_open', [$this, 'render_header_and_overlay']); // modern hook
-        add_action('admin_menu', [$this, 'register_settings_page']);
-        add_action('admin_init', [$this, 'register_settings']);
+        add_action('wp_body_open',       [$this, 'render_header_and_overlay']);
+        add_action('admin_menu',         [$this, 'register_settings_page']);
+        add_action('admin_init',         [$this, 'register_settings']);
     }
 
-    /** Register WP Menu location */
     public function register_menu_location() {
         register_nav_menu(self::MENU_LOCATION, __('DM Overlay Menu', 'dm-overlay-menu'));
     }
 
-    /** Enqueue CSS/JS */
     public function enqueue_assets() {
-        $ver = '1.0.0';
-        wp_enqueue_style('dmom-style', plugins_url('assets/css/style.css', __FILE__), [], $ver);
-        wp_enqueue_script('dmom-script', plugins_url('assets/js/menu.js', __FILE__), [], $ver, true);
-        // Pass PHP options to JS
-        $opts = $this->get_options();
-        wp_localize_script('dmom-script', 'DMOM', [
-            'lockScroll' => true,
-        ]);
+        $ver = '1.1.0';
+        wp_enqueue_style ('dmom-style', plugins_url('assets/css/style.css', __FILE__), [], $ver);
+        wp_enqueue_script('dmom-script', plugins_url('assets/js/menu.js',  __FILE__), [], $ver, true);
+        wp_localize_script('dmom-script', 'DMOM', ['lockScroll' => true]);
     }
 
-    /** Get plugin options with defaults */
-    public function get_options() {
+    private function get_options() {
         $defaults = [
             'logo_url'   => '',
             'mark_url'   => '',
@@ -52,13 +44,14 @@ class DM_Overlay_Menu {
         return wp_parse_args($saved, $defaults);
     }
 
-    /** Render header and overlay markup */
     public function render_header_and_overlay() {
-        // Avoid rendering in admin or if theme doesn't support body open
         if ( is_admin() ) return;
-        $opts = $this->get_options();
+        $opts   = $this->get_options();
+        $blue   = !empty($opts['blue'])   ? $opts['blue']   : '#20A0FF';
+        $dark   = !empty($opts['dark'])   ? $opts['dark']   : '#0f2733';
+        $orange = !empty($opts['orange']) ? $opts['orange'] : '#ff6a3d';
         ?>
-        <header class="dm-header" style="--dm-blue: <?php echo esc_attr($opts['blue']); ?>;">
+        <header class="dm-header" style="--dm-blue: <?php echo esc_attr($blue); ?>;">
             <a class="dm-brand" href="<?php echo esc_url(home_url('/')); ?>">
                 <?php if(!empty($opts['logo_url'])): ?>
                     <img src="<?php echo esc_url($opts['logo_url']); ?>" alt="<?php bloginfo('name'); ?>">
@@ -71,7 +64,7 @@ class DM_Overlay_Menu {
             </button>
         </header>
 
-        <aside class="dm-overlay" id="dmOverlay" aria-hidden="true" style="--dm-dark: <?php echo esc_attr($opts['dark']); ?>; --dm-orange: <?php echo esc_attr($opts['orange']); ?>;">
+        <aside class="dm-overlay" id="dmOverlay" aria-hidden="true" style="--dm-dark: <?php echo esc_attr($dark); ?>; --dm-orange: <?php echo esc_attr($orange); ?>;">
             <section class="dm-panel dm-panel--dark">
                 <div class="dm-panel-inner">
                     <?php if(!empty($opts['mark_url'])): ?>
@@ -85,7 +78,6 @@ class DM_Overlay_Menu {
             <nav class="dm-panel dm-panel--orange" aria-label="<?php esc_attr_e('Main','dm-overlay-menu'); ?>">
                 <button class="dm-close" id="dmClose" aria-label="<?php esc_attr_e('Close menu','dm-overlay-menu'); ?>">✕</button>
                 <?php
-                    // Render WP Menu assigned to our location
                     wp_nav_menu([
                         'theme_location' => self::MENU_LOCATION,
                         'container'      => false,
@@ -99,12 +91,10 @@ class DM_Overlay_Menu {
         <?php
     }
 
-    /** Fallback menu if no menu assigned */
     public function fallback_menu() {
         echo '<ul class="dm-menu"><li class="is-section"><a href="'.esc_url(home_url('/')).'">Home</a></li></ul>';
     }
 
-    /** Admin: settings page */
     public function register_settings_page() {
         add_options_page(
             __('DM Overlay Menu', 'dm-overlay-menu'),
@@ -115,7 +105,6 @@ class DM_Overlay_Menu {
         );
     }
 
-    /** Register settings */
     public function register_settings() {
         register_setting('dmom_group', self::OPTION_KEY);
         add_settings_section('dmom_main', __('General', 'dm-overlay-menu'), function(){
@@ -139,17 +128,12 @@ class DM_Overlay_Menu {
         }
     }
 
-    /** Settings page HTML */
     public function settings_page_html() {
         ?>
         <div class="wrap">
             <h1><?php esc_html_e('DM Overlay Menu', 'dm-overlay-menu'); ?></h1>
             <form method="post" action="options.php">
-                <?php
-                    settings_fields('dmom_group');
-                    do_settings_sections('dm-overlay-menu');
-                    submit_button();
-                ?>
+                <?php settings_fields('dmom_group'); do_settings_sections('dm-overlay-menu'); submit_button(); ?>
             </form>
             <p><?php esc_html_e('Asigna el menú en Apariencia → Menús → Ubicaciones: "DM Overlay Menu".', 'dm-overlay-menu'); ?></p>
         </div>
@@ -157,16 +141,10 @@ class DM_Overlay_Menu {
     }
 }
 
-/**
- * Custom walker to add classes "is-section" for top-level headings (no link)
- * and normal links for real items.
- */
 class DM_Overlay_Walker extends Walker_Nav_Menu {
-    // Render each item
     function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
         $classes = empty($item->classes) ? [] : (array) $item->classes;
-        $is_section = in_array('menu-item-has-children', $classes) && $item->url === '#';
-
+        $is_section = in_array('menu-item-has-children', $classes) && (empty($item->url) || $item->url === '#');
         if ( $is_section ) {
             $output .= '<li class="is-section">'. esc_html($item->title) .'</li>';
         } else {

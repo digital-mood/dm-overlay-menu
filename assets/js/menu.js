@@ -1,5 +1,4 @@
-// DM Overlay Menu JS
-// Small dependency-free controller. Comments are in English.
+// DM Overlay Menu JS (v1.1.0)
 (function () {
   const burger = document.getElementById('dmBurger');
   const overlay = document.getElementById('dmOverlay');
@@ -23,15 +22,19 @@
   burger.addEventListener('click', openMenu);
   closeBtn.addEventListener('click', closeMenu);
 
-  // Close when clicking outside the right panel
   overlay.addEventListener('click', (e) => {
     const isRightPanel = e.target.closest('.dm-panel--orange');
     const isBurger = e.target.closest('#dmBurger');
     if (!isRightPanel && !isBurger) closeMenu();
   });
 
-  // ESC to close
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && overlay.classList.contains('is-open')) closeMenu();
   });
+
+  (function(){
+    const h = document.querySelector('.dm-header'); if(!h) return;
+    const onS = () => window.scrollY > 8 ? h.classList.add('is-scrolled') : h.classList.remove('is-scrolled');
+    window.addEventListener('scroll', onS, {passive:true}); onS();
+  })();
 })();
