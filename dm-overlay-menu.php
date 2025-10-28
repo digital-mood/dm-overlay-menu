@@ -1,10 +1,8 @@
 <?php
 /**
  * Plugin Name: DM Overlay Menu
- * Description: Menú overlay tipo panel doble (oscuro + naranja) para digitalMood. Sin dependencias de Divi. Incluye overrides CSS para ocultar el header nativo de Divi y estilos fieles al diseño original.
- * Version: 1.1.0
+ * Version: 1.2.1
  * Author: digitalMood
- * Text Domain: dm-overlay-menu
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
@@ -25,20 +23,23 @@ class DM_Overlay_Menu {
     }
 
     public function enqueue_assets() {
-        $ver = '1.1.0';
-        wp_enqueue_style ('dmom-style', plugins_url('assets/css/style.css', __FILE__), [], $ver);
-        wp_enqueue_script('dmom-script', plugins_url('assets/js/menu.js',  __FILE__), [], $ver, true);
-        wp_localize_script('dmom-script', 'DMOM', ['lockScroll' => true]);
+        $ver_css = filemtime(plugin_dir_path(__FILE__).'assets/css/style.css');
+        $ver_js  = filemtime(plugin_dir_path(__FILE__).'assets/js/menu.js');
+        wp_enqueue_style ('dmom-style', plugins_url('assets/css/style.css', __FILE__), [], $ver_css);
+        wp_enqueue_script('dmom-script', plugins_url('assets/js/menu.js',  __FILE__), [], $ver_js, true);
     }
 
     private function get_options() {
         $defaults = [
-            'logo_url'   => '',
-            'mark_url'   => '',
-            'tagline'    => 'Shaping ideas into digital realities',
-            'blue'       => '#20A0FF',
-            'dark'       => '#0f2733',
-            'orange'     => '#ff6a3d',
+            'logo_url'    => '',
+            'mark_url'    => '',
+            'tagline'     => 'Shaping ideas into digital realities',
+            'blue'        => '',
+            'dark'        => '',
+            'orange'      => '',
+            'menu_color'  => '',
+            'menu_hover'  => '',
+            'menu_active' => '',
         ];
         $saved = get_option(self::OPTION_KEY, []);
         return wp_parse_args($saved, $defaults);
@@ -46,12 +47,18 @@ class DM_Overlay_Menu {
 
     public function render_header_and_overlay() {
         if ( is_admin() ) return;
-        $opts   = $this->get_options();
-        $blue   = !empty($opts['blue'])   ? $opts['blue']   : '#20A0FF';
-        $dark   = !empty($opts['dark'])   ? $opts['dark']   : '#0f2733';
-        $orange = !empty($opts['orange']) ? $opts['orange'] : '#ff6a3d';
+        $opts = $this->get_options();
+
+        // Construction of dynamic styles.
+        $overlay_vars = [];
+        foreach (['dark','orange','menu_color','menu_hover','menu_active'] as $var) {
+            if (!empty($opts[$var])) {
+                $overlay_vars[] = '--dm-' . str_replace('_','-',$var) . ': ' . $opts[$var];
+            }
+        }
+        $overlay_style = $overlay_vars ? ' style="'.implode('; ',$overlay_vars).'"' : '';
         ?>
-        <header class="dm-header" style="--dm-blue: <?php echo esc_attr($blue); ?>;">
+        <header class="dm-header">
             <a class="dm-brand" href="<?php echo esc_url(home_url('/')); ?>">
                 <?php if(!empty($opts['logo_url'])): ?>
                     <img src="<?php echo esc_url($opts['logo_url']); ?>" alt="<?php bloginfo('name'); ?>">
@@ -59,12 +66,10 @@ class DM_Overlay_Menu {
                     <span class="dm-brand__text"><?php bloginfo('name'); ?></span>
                 <?php endif; ?>
             </a>
-            <button class="dm-burger" id="dmBurger" aria-label="<?php esc_attr_e('Open menu','dm-overlay-menu'); ?>" aria-expanded="false" aria-controls="dmOverlay">
-                <span></span><span></span><span></span>
-            </button>
+            <button class="dm-burger" id="dmBurger"><span></span><span></span><span></span></button>
         </header>
 
-        <aside class="dm-overlay" id="dmOverlay" aria-hidden="true" style="--dm-dark: <?php echo esc_attr($dark); ?>; --dm-orange: <?php echo esc_attr($orange); ?>;">
+        <aside class="dm-overlay" id="dmOverlay" aria-hidden="true"<?php echo $overlay_style; ?>>
             <section class="dm-panel dm-panel--dark">
                 <div class="dm-panel-inner">
                     <?php if(!empty($opts['mark_url'])): ?>
@@ -75,55 +80,52 @@ class DM_Overlay_Menu {
                     <?php endif; ?>
                 </div>
             </section>
-            <nav class="dm-panel dm-panel--orange" aria-label="<?php esc_attr_e('Main','dm-overlay-menu'); ?>">
-                <button class="dm-close" id="dmClose" aria-label="<?php esc_attr_e('Close menu','dm-overlay-menu'); ?>">✕</button>
+            <nav class="dm-panel dm-panel--orange" aria-label="Main">
+                <button class="dm-close" id="dmClose">✕</button>
                 <?php
-                    wp_nav_menu([
-                        'theme_location' => self::MENU_LOCATION,
-                        'container'      => false,
-                        'menu_class'     => 'dm-menu',
-                        'fallback_cb'    => [$this, 'fallback_menu'],
-                        'walker'         => new DM_Overlay_Walker(),
-                    ]);
+                wp_nav_menu([
+                    'theme_location' => self::MENU_LOCATION,
+                    'container'      => false,
+                    'menu_class'     => 'dm-menu',
+                ]);
                 ?>
             </nav>
         </aside>
         <?php
     }
 
-    public function fallback_menu() {
-        echo '<ul class="dm-menu"><li class="is-section"><a href="'.esc_url(home_url('/')).'">Home</a></li></ul>';
-    }
-
     public function register_settings_page() {
-        add_options_page(
-            __('DM Overlay Menu', 'dm-overlay-menu'),
-            __('DM Overlay Menu', 'dm-overlay-menu'),
-            'manage_options',
-            'dm-overlay-menu',
-            [$this, 'settings_page_html']
-        );
+        add_options_page('DM Overlay Menu', 'DM Overlay Menu', 'manage_options', 'dm-overlay-menu', [$this,'settings_page_html']);
     }
 
     public function register_settings() {
         register_setting('dmom_group', self::OPTION_KEY);
         add_settings_section('dmom_main', __('General', 'dm-overlay-menu'), function(){
-            echo '<p>'.esc_html__('Configura logos, tagline y colores.', 'dm-overlay-menu').'</p>';
+            echo '<p>Configura los colores y estilos del menú overlay.</p>';
         }, 'dm-overlay-menu');
 
         $fields = [
-            'logo_url' => __('Logo URL (cabecera)', 'dm-overlay-menu'),
-            'mark_url' => __('Marca circular URL (panel oscuro)', 'dm-overlay-menu'),
-            'tagline'  => __('Tagline', 'dm-overlay-menu'),
-            'blue'     => __('Color azul (header)', 'dm-overlay-menu'),
-            'dark'     => __('Color oscuro (panel)', 'dm-overlay-menu'),
-            'orange'   => __('Color naranja (panel)', 'dm-overlay-menu'),
+            'logo_url'    => 'Logo URL (NavBar)',
+            'mark_url'    => 'Logo (Panel left)',
+            'tagline'     => 'Tagline',
+            'dark'        => 'Color (Right panel)',
+            'orange'      => 'Color (Left panel)',
+            'menu_color'  => 'Text color menu',
+            'menu_hover'  => 'Hover color menu',
+            'menu_active' => 'Active color menu',
         ];
+
         foreach ($fields as $key => $label) {
             add_settings_field($key, $label, function() use ($key){
                 $opts = get_option(DM_Overlay_Menu::OPTION_KEY, []);
-                $val = isset($opts[$key]) ? $opts[$key] : '';
-                printf('<input type="text" style="width:420px" name="%s[%s]" value="%s" />', esc_attr(DM_Overlay_Menu::OPTION_KEY), esc_attr($key), esc_attr($val));
+                $val = $opts[$key] ?? '';
+                printf(
+                    '<input type="text" style="width:320px" name="%s[%s]" value="%s" placeholder="%s" />',
+                    esc_attr(DM_Overlay_Menu::OPTION_KEY),
+                    esc_attr($key),
+                    esc_attr($val),
+                    esc_attr('#ffffff o rgba(255,255,255,.9)')
+                );
             }, 'dm-overlay-menu', 'dmom_main');
         }
     }
@@ -131,27 +133,12 @@ class DM_Overlay_Menu {
     public function settings_page_html() {
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e('DM Overlay Menu', 'dm-overlay-menu'); ?></h1>
+            <h1>DM Overlay Menu</h1>
             <form method="post" action="options.php">
                 <?php settings_fields('dmom_group'); do_settings_sections('dm-overlay-menu'); submit_button(); ?>
             </form>
-            <p><?php esc_html_e('Asigna el menú en Apariencia → Menús → Ubicaciones: "DM Overlay Menu".', 'dm-overlay-menu'); ?></p>
         </div>
         <?php
     }
 }
-
-class DM_Overlay_Walker extends Walker_Nav_Menu {
-    function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
-        $classes = empty($item->classes) ? [] : (array) $item->classes;
-        $is_section = in_array('menu-item-has-children', $classes) && (empty($item->url) || $item->url === '#');
-        if ( $is_section ) {
-            $output .= '<li class="is-section">'. esc_html($item->title) .'</li>';
-        } else {
-            $atts = ' href="'. esc_url($item->url) .'"';
-            $output .= '<li><a'. $atts .'>'. esc_html($item->title) .'</a></li>';
-        }
-    }
-}
-
 new DM_Overlay_Menu();

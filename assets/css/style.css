@@ -171,7 +171,7 @@
 
 .dm-menu li:not(.is-section) a:hover,
 .dm-menu li:not(.is-section) a:focus {
-  color: #ffffff; /* blanco puro en hover/focus */
+  color: #ffffff;
   opacity: 1;
   transition: color 0.25s ease, opacity 0.25s ease;
 }
@@ -189,12 +189,12 @@
   }
 }
 
-/* ===== Mobile (como tu diseño final) ===== */
+/* ===== Mobile ===== */
 @media (max-width: 780px) {
   .dm-overlay {
     width: 100vw !important;
     grid-template-columns: 1fr !important;
-    grid-template-rows: 230px 1fr !important; /* más padding arriba */
+    grid-template-rows: 230px 1fr !important; 
     box-shadow: none;
   }
 
@@ -209,7 +209,7 @@
     display: flex !important;
   }
 
-  /* Logo + tagline centrados y con más aire */
+  /* Centered and more airy logo + tagline */
   .dm-panel-inner {
     padding: 24px 20px 0 !important;
   }
@@ -222,12 +222,12 @@
     opacity: 0.8;
   }
 
-  /* Panel naranja con respiro arriba */
+  /* Orange panel with breather above*/
   .dm-panel--orange {
     padding-top: 18px !important;
   }
 
-  /* Botón cerrar arriba del todo */
+  /* Close button at the top */
   .dm-close {
     position: fixed !important;
     top: 10px !important;
@@ -238,7 +238,7 @@
     z-index: 2000 !important;
   }
 
-  /* Menú compacto */
+  /* Compact menu */
   .dm-menu {
     padding: 18px 24px 40px !important;
     gap: 6px !important;
@@ -281,4 +281,19 @@
   margin-left: 24px;
   font-weight: 400;
   font-size: 18px !important;
+}
+
+/* Variables configurable from admin */
+.dm-menu li:not(.is-section) a {
+  color: var(--dm-menu-color, #0a0e17);
+  transition: color 0.25s ease;
+}
+.dm-menu li:not(.is-section) a:hover,
+.dm-menu li:not(.is-section) a:focus {
+  color: var(--dm-menu-hover, #ffffff);
+}
+.dm-menu li.current-menu-item > a,
+.dm-menu li.current_page_item > a,
+.dm-menu li:not(.is-section) a[aria-current="page"] {
+  color: var(--dm-menu-active, #ffffff);
 }
